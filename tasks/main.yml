@@ -1,0 +1,14 @@
+---
+- name: TLS | Override default data with user one
+  set_fact:
+    tls: "{{ tls_common | combine(tls_group, tls_host, recursive=True) }}"
+  tags:
+    - always
+
+- name: TLS | Check target bungle type
+  fail:
+    msg: "Your tls.target_format is not supported"
+  when: tls.target_format not in ["haproxy", "nginx"]
+
+- name: TLS | Include according processing module
+  include_tasks: "{{ tls.type }}.yml"
