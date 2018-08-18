@@ -10,5 +10,13 @@
     msg: "Your tls.target_format is not supported"
   when: tls.target_format not in ["haproxy", "nginx"]
 
+- name: TLS | Ensure directories
+  file:
+    path: "{{ tls.target_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
 - name: TLS | Include according processing module
   include_tasks: "{{ tls.type }}.yml"
