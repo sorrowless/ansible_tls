@@ -28,6 +28,8 @@ tls_group:
   target_bundle_name: bundle.pem
 ```
 
+You can see all vars in `default/main.yml` vars file.
+
 #### Dependencies
 
 None

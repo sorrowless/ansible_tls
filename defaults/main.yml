@@ -1,9 +1,32 @@
 ---
 tls_common:
-  # Types: local
+  # Types: local, acme
+  ## Local cert variables
   type: local
   local_src_key: false
   local_src_cert: false
+  ## Acme cert variables
+  ### Available tools: acme.sh
+  acme_tool: acme.sh
+  ### List of domain names to get certificates for
+  acme_domains: []
+  ### Hooks
+  acme_hooks: true
+  acme_pre_hook: 'systemctl stop nginx'
+  acme_post_hook: 'systemctl start nginx'
+  ### Challenge types: standalone, dns
+  acme_challenge: standalone
+  #### Dns challenge vars
+  ##### Type of supported dns api
+  acme_ch_dns_type: dns_gd
+  ##### Vars which need to be exported in case of dns api usage
+  ##### About naming look at https://github.com/Neilpang/acme.sh/tree/master/dnsapi
+  acme_ch_dns_vars:
+    GD_Key: somekeyshouldbehere
+    GD_Secret: secretshouldbehere
+  ##### Renew hook for DNS mode
+  acme_ch_dns_hook: 'nginx -s reload'
+  # Dir where certs will be placed to
   target_dir: /etc/ssl_certs
   # Formats: nginx, haproxy
   target_format: nginx
