@@ -24,8 +24,6 @@ tls_common:
   acme_ch_dns_vars:
     GD_Key: somekeyshouldbehere
     GD_Secret: secretshouldbehere
-  ##### Renew hook for DNS mode
-  acme_ch_dns_hook: 'nginx -s reload'
   # Dir where certs will be placed to
   target_dir: /etc/ssl_certs
   # Formats: nginx, haproxy

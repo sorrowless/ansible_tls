@@ -5,7 +5,7 @@
   tags:
     - always
 
-- name: TLS | Check target bungle type
+- name: TLS | Check target bundle type
   fail:
     msg: "Your tls.target_format is not supported"
   when: tls.target_format not in ["haproxy", "nginx"]

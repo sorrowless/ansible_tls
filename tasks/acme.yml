@@ -35,7 +35,7 @@
   shell:
     cmd: |
       crontab -l | sed -e 's:.*acme.sh.*:10 0 * * * /root/.acme.sh/acme.sh --cron --home /root/.acme.sh:' | crontab -
-  when: crontab_default_acme_entry.rc == 1
+  when: crontab_default_acme_entry.rc == 0
 
 - name: TLS | Installation | Convert domains list to appropriate format
   set_fact:
@@ -69,6 +69,20 @@
   register: ch_ex
   failed_when: False
 
+- name: TLS | Certificate Issue | Create new certs in DNS mode
+  shell:
+    cmd: |
+      ./acme.sh --issue --dns {{ tls.acme_ch_dns_type }} {{ acme_domains }} \
+      --key-file /etc/ssl_certs/{{ tls.acme_domains[0] }}/private.pem \
+      --fullchain-file /etc/ssl_certs/{{ tls.acme_domains[0] }}/fullchain.pem \
+      --post-hook "{{ tls.acme_post_hook }}"
+  args:
+    chdir: /root/acme.sh
+  environment: "{{ tls.acme_ch_dns_vars }}"
+  when: tls.acme_challenge == "dns"
+  register: ch_ex
+  failed_when: False
+
 - name: TLS | Postinstall | Ensure prehook for cron
   lineinfile:
     path: "/root/.acme.sh/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.conf"
@@ -83,20 +97,6 @@
     line: 'Le_PostHook="{{ tls.acme_post_hook }}"'
   when: tls.acme_hooks == true
 
-- name: TLS | Certificate Issue | Create new certs in DNS mode
-  shell:
-    cmd: |
-      ./acme.sh --issue --dns {{ tls.acme_ch_dns_type }} {{ acme_domains }} \
-      --key-file /etc/ssl_certs/{{ tls.acme_domains[0] }}/private.pem \
-      --fullchain-file /etc/ssl_certs/{{ tls.acme_domains[0] }}/fullchain.pem \
-      {{ tls.acme_ch_dns_hook }}
-  args:
-    chdir: /root/acme.sh
-  environment: "{{ acme_ch_dns_vars }}"
-  when: tls.acme_challenge == "dns"
-  register: ch_ex
-  failed_when: False
-
 - name: TLS | Postcheck | Ensure certs placement
   stat:
     path: /etc/ssl_certs/{{ tls.acme_domains[0] }}/private.pem
@@ -109,20 +109,31 @@
     state: link
   with_items:
     - { src: "/root/.acme.sh/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key",
-        dest: "/etc/ssl_certs/{{ tls.acme_domains[0] }}/private.pem" }
+        dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem" }
     - { src: "/root/.acme.sh/{{ tls.acme_domains[0] }}/fullchain.cer",
-        dest: "/etc/ssl_certs/{{ tls.acme_domains[0] }}/fullchain.pem" }
+        dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/fullchain.pem" }
   when: not private_key.stat.exists
 
-- name: TLS | Postcheck | Create HAProxy chain
+- name: TLS | Deploy | Create HAProxy chain
   shell:
     cmd: |
       cat \
       /root/.acme.sh/{{ tls.acme_domains[0] }}/fullchain.cer \
       /root/.acme.sh/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key \
-      > /etc/ssl_certs/{{ tls.acme_domains[0] }}/{{ tls.target_bundle_name }}
-  when: tls.target_format == 'haproxy'
-  changed_when: false
+      > {{ tls.target_dir }}/{{ tls.acme_domains[0] }}/{{ tls.target_bundle_name }}
+  when: tls.target_format == 'haproxy' and tls.type == 'local'
+
+- name: TLS | Deploy | Create HAProxy chain
+  shell:
+    cmd: |
+      ./acme.sh --deploy {{ acme_domains }} \
+      --deploy-hook haproxy
+  args:
+    chdir: /root/acme.sh
+  environment:
+    DEPLOY_HAPROXY_PEM_PATH: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}"
+    DEPLOY_HAPROXY_RELOAD: "systemctl reload haproxy"
+  when: tls.target_format == 'haproxy' and tls.type == 'acme'
 
 - name: TLS | Postcheck | Fail if got real error on cert issuing time
   fail:
