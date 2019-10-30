@@ -68,6 +68,7 @@
     chdir: /root/acme.sh
   when: tls.acme_challenge == "standalone"
   register: ch_ex
+  changed_when: ch_ex.rc != 2
   failed_when: False
 
 - name: TLS | Certificate Issue | Create new certs in DNS mode
