@@ -83,6 +83,7 @@
   environment: "{{ tls.acme_ch_dns_vars }}"
   when: tls.acme_challenge == "dns"
   register: ch_ex
+  changed_when: "'Domains not changed' not in ch_ex.stdout"
   failed_when: False
 
 - name: TLS | Postinstall | Ensure prehook for cron
