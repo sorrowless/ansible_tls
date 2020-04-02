@@ -20,7 +20,7 @@
 
 - name: TLS | Installation | Checkout acme.sh repo
   git:
-    repo: https://github.com/Neilpang/acme.sh.git
+    repo: https://github.com/acmesh-official/acme.sh.git
     dest: "{{ acme_checkout_dir }}"
 
 - name: TLS | Installation | Install acme.sh to the system
