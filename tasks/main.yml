@@ -11,11 +11,13 @@
   when: tls.target_format not in ["haproxy", "nginx"]
 
 - name: TLS | Ensure directories
+  become: yes
+  become_user: root
   file:
     path: "{{ tls.target_dir }}"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     mode: 0755
 
 - name: TLS | Include according processing module
