@@ -73,6 +73,8 @@
   file:
     path: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}"
     state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
 
 - name: TLS | Installation | Create hooks string
   set_fact:
@@ -130,10 +132,10 @@
   register: private_key
 
 - name: TLS | Postcheck | Forcibly place keypair to target dir
-  file:
+  copy:
     src: '{{ item["src"] }}'
-    dest: ' {{ item["dest"] }}'
-    state: link
+    remote_src: yes
+    dest: '{{ item["dest"] }}'
   with_items:
     - { src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key",
         dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem" }
