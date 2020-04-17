@@ -10,6 +10,7 @@
   package:
     name: "{{ item }}"
     state: present
+  ignore_errors: yes
   with_items:
     - git
     - curl
