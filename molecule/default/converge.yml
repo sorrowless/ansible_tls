@@ -1,0 +1,59 @@
+---
+- name: Converge local type with default directory
+  hosts: all
+  become: true
+
+  vars:
+    ansible_user: root
+    tls_host:
+      type: local
+      local_src_key: testkey
+      local_src_cert: testcert
+
+  pre_tasks:
+    - name: Update apt cache.
+      apt: update_cache=true cache_valid_time=600
+      changed_when: false
+      when: ansible_os_family == 'Debian'
+
+  roles:
+    - role: tls
+
+  post_tasks:
+    - name: Verify key was properly placed
+      command: "cat /etc/ssl_certs/private.pem"
+      changed_when: false
+
+    - name: Verify cert was properly placed
+      command: "cat /etc/ssl_certs/fullchain.pem"
+      changed_when: false
+
+- name: Converge local type with non-default directory
+  hosts: all
+  become: true
+
+  vars:
+    ansible_user: root
+    tls_host:
+      type: local
+      local_src_key: testkey
+      local_src_cert: testcert
+      target_dir: /etc/ssl_certs/nondefault
+
+  pre_tasks:
+    - name: Update apt cache.
+      apt: update_cache=true cache_valid_time=600
+      changed_when: false
+      when: ansible_os_family == 'Debian'
+
+  roles:
+    - role: tls
+
+  post_tasks:
+    - name: Verify key was properly placed
+      command: "cat /etc/ssl_certs/nondefault/private.pem"
+      changed_when: false
+
+    - name: Verify cert was properly placed
+      command: "cat /etc/ssl_certs/nondefault/fullchain.pem"
+      changed_when: false

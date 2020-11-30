@@ -31,11 +31,14 @@
       git:
         repo: https://github.com/acmesh-official/acme.sh.git
         dest: "{{ acme_checkout_dir }}"
+        version: master
 
     - name: TLS | Installation | Install acme.sh to the system
       become: yes
       become_user: root
-      command: "./acme.sh --install --home {{ acme_dir }} --config-home {{ acme_dir }} --cert-home {{ acme_dir }} --nocron --noprofile"
+      command: >
+        ./acme.sh --install --home {{ acme_dir }}
+          --config-home {{ acme_dir }} --cert-home {{ acme_dir }} --nocron --noprofile
       args:
         chdir: "{{ acme_checkout_dir }}"
         creates: "{{ acme_dir }}/acme.sh"
@@ -75,8 +78,9 @@
       become: yes
       become_user: root
       shell:
-        cmd: |
-          (crontab -l ; echo '{{ 60 | random }} {{ 5 | random }} * * * {{ acme_dir }}/acme.sh --cron --home {{ acme_dir }} --config-home {{ acme_dir }}') | crontab -
+        cmd: >
+          (crontab -l ; echo '{{ 60 | random }} {{ 5 | random }} * * * {{ acme_dir }}/acme.sh
+            --cron --home {{ acme_dir }} --config-home {{ acme_dir }}') | crontab -
       when: crontab_previous_acme_entry.rc != 0
 
     - name: TLS | Installation | Convert domains list to appropriate format
@@ -96,6 +100,7 @@
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
+        mode: 0755
 
     - name: TLS | Installation | Create hooks string
       set_fact:
@@ -117,7 +122,7 @@
       when: tls.acme_challenge == "standalone"
       register: ch_ex
       changed_when: ch_ex.rc != 2
-      failed_when: False
+      failed_when: false
 
     - name: TLS | Certificate Issue | Create new certs in DNS mode
       become: yes
@@ -135,7 +140,7 @@
       when: tls.acme_challenge == "dns"
       register: ch_ex
       changed_when: "'Domains not changed' not in ch_ex.stdout"
-      failed_when: False
+      failed_when: false
 
     - name: TLS | Postinstall | Ensure prehook for cron
       become: yes
@@ -169,11 +174,14 @@
         dest: '{{ item["dest"] }}'
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
+        mode: '{{ item["mode"] }}'
       with_items:
-        - { src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key",
-            dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem" }
-        - { src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/fullchain.cer",
-            dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/fullchain.pem" }
+        - {src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key",
+           dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem",
+           mode: 0600}
+        - {src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/fullchain.cer",
+           dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/fullchain.pem",
+           mode: 0644}
       when: not private_key.stat.exists
 
     - name: TLS | Deploy | Create HAProxy chain

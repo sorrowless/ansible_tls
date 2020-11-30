@@ -1,13 +1,18 @@
-sbog/tls
-========
+# sbog/tls
+
+[![Build Status](https://travis-ci.com/sorrowless/ansible_rbenv.svg?branch=master)](https://travis-ci.com/sorrowless/ansible_rbenv)
+[![Ansible Role](https://img.shields.io/ansible/role/32852)](https://galaxy.ansible.com/sorrowless/rbenv)
+[![Ansible Quality Score](https://img.shields.io/ansible/quality/32852)](https://galaxy.ansible.com/sorrowless/rbenv)
+[![Ansible Role](https://img.shields.io/ansible/role/d/32852)](https://galaxy.ansible.com/sorrowless/rbenv)
+[![GitHub](https://img.shields.io/github/license/sorrowless/ansible_rbenv)](https://github.com/sorrowless/ansible_rbenv/blob/master/LICENSE)
 
 Role to work with TLS certificates
 
-#### Requirements
+## Requirements
 
-Ansible 2.4
+Ansible 2.4+
 
-#### Role Variables
+## Role Variables
 
 Role variables can be placed to a dictionary named `tls_group` for gropu vars
 and `tls_host` for host vars. Host vars will override group ones. There is an
@@ -30,11 +35,11 @@ tls_group:
 
 You can see all vars in `default/main.yml` vars file.
 
-#### Dependencies
+## Dependencies
 
 None
 
-#### Example Playbook
+## Example Playbook
 
 ```yaml
 - name: Place needed TLS keypairs to the right places
@@ -45,10 +50,10 @@ None
     - tls
 ```
 
-#### License
+## License
 
 Apache 2.0
 
-#### Author Information
+## Author Information
 
-Stanislaw Bogatkin (https://sbog.ru)
+This role was created by [Stan Bogatkin](https://sbog.ru).
