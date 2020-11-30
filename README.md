@@ -1,10 +1,10 @@
 # sbog/tls
 
-[![Build Status](https://travis-ci.com/sorrowless/ansible_rbenv.svg?branch=master)](https://travis-ci.com/sorrowless/ansible_rbenv)
-[![Ansible Role](https://img.shields.io/ansible/role/32852)](https://galaxy.ansible.com/sorrowless/rbenv)
-[![Ansible Quality Score](https://img.shields.io/ansible/quality/32852)](https://galaxy.ansible.com/sorrowless/rbenv)
-[![Ansible Role](https://img.shields.io/ansible/role/d/32852)](https://galaxy.ansible.com/sorrowless/rbenv)
-[![GitHub](https://img.shields.io/github/license/sorrowless/ansible_rbenv)](https://github.com/sorrowless/ansible_rbenv/blob/master/LICENSE)
+[![Build Status](https://travis-ci.com/sorrowless/ansible_tls.svg?branch=master)](https://travis-ci.com/sorrowless/ansible_tls)
+[![Ansible Role](https://img.shields.io/ansible/role/32852)](https://galaxy.ansible.com/sorrowless/tls)
+[![Ansible Quality Score](https://img.shields.io/ansible/quality/32852)](https://galaxy.ansible.com/sorrowless/tls)
+[![Ansible Role](https://img.shields.io/ansible/role/d/32852)](https://galaxy.ansible.com/sorrowless/tls)
+[![GitHub](https://img.shields.io/github/license/sorrowless/ansible_tls)](https://github.com/sorrowless/ansible_tls/blob/master/LICENSE)
 
 Role to work with TLS certificates
 
