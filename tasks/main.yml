@@ -1,24 +1,29 @@
 ---
 - name: TLS | Override default data with user one
   set_fact:
-    tls: "{{ tls_common | combine(tls_group, tls_host, recursive=True) }}"
+    tls_data: "{{ tls_data|default([]) + [tls_common | combine(tls_group, tls_host, recursive=True)] }}"
+  when:
+    - tls_host | type_debug == "dict"
   tags:
     - always
 
-- name: TLS | Check target bundle type
-  fail:
-    msg: "Your tls.target_format is not supported"
-  when: tls.target_format not in ["haproxy", "nginx"]
+- name: TLS | Override default data with user one
+  set_fact:
+    tls_data: "{{ tls_data|default([]) + [tls_common | combine(tls_group, item, recursive=True)] }}"
+  with_items: "{{ tls_host }}"
+  when:
+    - tls_host | type_debug == "list"
+  tags:
+    - always
 
-- name: TLS | Ensure directories
-  become: yes
-  become_user: root
-  file:
-    path: "{{ tls.target_dir }}"
-    state: directory
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: 0755
+- name: TLS | Include according processing module
+  include_tasks: "common.yml"
+  loop: "{{ tls_data }}"
+  loop_control:
+    loop_var: tls
 
 - name: TLS | Include according processing module
   include_tasks: "{{ tls.type }}.yml"
+  loop: "{{ tls_data }}"
+  loop_control:
+    loop_var: tls
