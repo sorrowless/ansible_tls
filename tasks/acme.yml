@@ -78,9 +78,8 @@
       become: yes
       become_user: root
       shell:
-        cmd: >
-          (crontab -l ; echo '{{ 60 | random }} {{ 5 | random }} * * * {{ acme_dir }}/acme.sh
-            --cron --home {{ acme_dir }} --config-home {{ acme_dir }}') | crontab -
+        cmd: |
+          (crontab -l ; echo '{{ 60 | random }} {{ 5 | random }} * * * {{ acme_dir }}/acme.sh --cron --home {{ acme_dir }} --config-home {{ acme_dir }}') | crontab -
       when: crontab_previous_acme_entry.rc != 0
 
     - name: TLS | Installation | Convert domains list to appropriate format
@@ -193,21 +192,7 @@
           {{ acme_dir }}/{{ tls.acme_domains[0] }}/fullchain.cer \
           {{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key \
           > {{ tls.target_dir }}/{{ tls.acme_domains[0] }}/{{ tls.target_bundle_name }}
-      when: tls.target_format == 'haproxy' and tls.type == 'local'
-
-    - name: TLS | Deploy | Create HAProxy chain
-      become: yes
-      become_user: root
-      shell:
-        cmd: |
-          ./acme.sh --deploy {{ acme_domains }} \
-          --deploy-hook haproxy
-      args:
-        chdir: "{{ acme_dir }}"
-      environment:
-        DEPLOY_HAPROXY_PEM_PATH: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}"
-        DEPLOY_HAPROXY_RELOAD: "systemctl reload haproxy"
-      when: tls.target_format == 'haproxy' and tls.type == 'acme'
+      when: tls.target_format == 'haproxy'
 
     - name: TLS | Postcheck | Fail if got real error on cert issuing time
       fail:
