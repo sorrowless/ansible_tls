@@ -217,6 +217,8 @@
           {{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key \
           > {{ tls.target_dir }}/{{ tls.acme_domains[0] }}/{{ tls.target_bundle_name }}
       when: tls.target_format == 'haproxy'
+      notify:
+        - Haproxy reload
 
     - name: TLS | Postcheck | Fail if got real error on cert issuing time
       fail:
