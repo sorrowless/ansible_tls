@@ -154,6 +154,17 @@
       changed_when: "'Domains not changed' not in ch_ex.stdout"
       failed_when: false
 
+    - name: TLS | Certificate Issue | Ensure notifications about certs renewal
+      become: yes
+      become_user: root
+      shell:
+        cmd: |
+          ./acme.sh --set-notify --notify-hook {{ tls.acme_notify_hook_type }}
+      args:
+        chdir: "{{ acme_dir }}"
+      environment: "{{ tls.acme_notify_envvars }}"
+      when: tls.acme_notify
+
     - name: TLS | Postinstall | Ensure prehook for cron
       become: yes
       become_user: root

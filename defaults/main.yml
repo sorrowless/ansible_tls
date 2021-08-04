@@ -26,6 +26,10 @@ tls_common:
     GD_Secret: secretshouldbehere
   # After moving to ZeroSSL account is required
   acme_account_email: me@example.com
+  # Whether or not use notifications
+  acme_notify: false
+  acme_notify_envvars: ""
+  acme_notify_hook_type: telegram
   # Dir where certs will be placed to
   target_dir: /etc/ssl_certs
   # Formats: nginx, haproxy
