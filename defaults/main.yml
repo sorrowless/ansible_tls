@@ -24,6 +24,8 @@ tls_common:
   acme_ch_dns_vars:
     GD_Key: somekeyshouldbehere
     GD_Secret: secretshouldbehere
+  # After moving to ZeroSSL account is required
+  acme_account_email: me@example.com
   # Dir where certs will be placed to
   target_dir: /etc/ssl_certs
   # Formats: nginx, haproxy
