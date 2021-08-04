@@ -114,7 +114,8 @@
       become_user: root
       shell:
         cmd: |
-          ./acme.sh --register-account -m {{ tls.acme_account_email }}
+          ./acme.sh --register-account -m {{ tls.acme_account_email }} \
+          --home {{ acme_dir }} --config-home {{ acme_dir }}
       args:
         chdir: "{{ acme_dir }}"
       failed_when: false
