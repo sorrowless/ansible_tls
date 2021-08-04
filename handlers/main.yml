@@ -3,4 +3,3 @@
   systemd:
     name: haproxy
     state: reloaded
-
