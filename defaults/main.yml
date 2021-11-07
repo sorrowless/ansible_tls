@@ -32,10 +32,16 @@ tls_common:
   acme_notify_hook_type: telegram
   # Dir where certs will be placed to
   target_dir: /etc/ssl_certs
+  target_ca_path: ""
+  target_cert_path: ""
+  target_key_path: ""
+  target_fullchain_path: ""
   # Formats: nginx, haproxy
   target_format: nginx
   target_key_name: private.pem
-  target_cert_name: fullchain.pem
+  target_cert_name: cert.pem
+  target_fullchain_name: fullchain.pem
+  target_ca_name: ca.pem
   # If target_format is 'haproxy', this filename will be used
   target_bundle_name: bundle.pem
 tls_group: {}

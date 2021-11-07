@@ -120,14 +120,64 @@
         chdir: "{{ acme_dir }}"
       failed_when: false
 
+    - name: Set var for CA path
+      set_fact:
+        tls_target_ca_path: "{{ tls.target_dir + '/' + tls.acme_domains[0] + '/' + tls.target_ca_name }}"
+      when:
+        - tls.target_ca_path == ""
+
+    - name: Set var for key path
+      set_fact:
+        tls_target_key_path: "{{ tls.target_dir + '/' + tls.acme_domains[0] + '/' + tls.target_key_name }}"
+      when:
+        - tls.target_key_path == ""
+
+    - name: Set var for fullchain path
+      set_fact:
+        tls_target_fullchain_path: "{{ tls.target_dir + '/' + tls.acme_domains[0] + '/' + tls.target_fullchain_name }}"
+      when:
+        - tls.target_fullchain_path == ""
+
+    - name: Set var for cert path
+      set_fact:
+        tls_target_cert_path: "{{ tls.target_dir + '/' + tls.acme_domains[0] + '/' + tls.target_cert_name }}"
+      when:
+        - tls.target_cert_path == ""
+
+    - name: Set var for CA path
+      set_fact:
+        tls_target_ca_path: "{{ tls.target_ca_path }}"
+      when:
+        - tls.target_ca_path != ""
+
+    - name: Set var for key path
+      set_fact:
+        tls_target_key_path: "{{ tls.target_key_path }}"
+      when:
+        - tls.target_key_path != ""
+
+    - name: Set var for fullchain path
+      set_fact:
+        tls_target_fullchain_path: "{{ tls.target_fullchain_path }}"
+      when:
+        - tls.target_fullchain_path != ""
+
+    - name: Set var for cert path
+      set_fact:
+        tls_target_cert_path: "{{ tls.target_cert_path }}"
+      when:
+        - tls.target_cert_path != ""
+
     - name: TLS | Certificate Issue | Create new certs in standalone mode
       become: yes
       become_user: root
       shell:
         cmd: |
           ./acme.sh --issue --{{ tls.acme_challenge }} {{ acme_domains }} \
-          --key-file /etc/ssl_certs/{{ tls.acme_domains[0] }}/private.pem \
-          --fullchain-file /etc/ssl_certs/{{ tls.acme_domains[0] }}/fullchain.pem \
+          --ca-file {{ tls_target_ca_path }} \
+          --key-file {{ tls_target_key_path }} \
+          --fullchain-file {{ tls_target_fullchain_path }} \
+          --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
           {{ acme_hooks }}
       args:
@@ -143,8 +193,10 @@
       shell:
         cmd: |
           ./acme.sh --issue --dns {{ tls.acme_ch_dns_type }} {{ acme_domains }} \
-          --key-file /etc/ssl_certs/{{ tls.acme_domains[0] }}/private.pem \
-          --fullchain-file /etc/ssl_certs/{{ tls.acme_domains[0] }}/fullchain.pem \
+          --ca-file {{ tls_target_ca_path }} \
+          --key-file {{ tls_target_key_path }} \
+          --fullchain-file {{ tls_target_fullchain_path }} \
+          --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
           --post-hook "{{ tls.acme_post_hook }}"
       args:
@@ -189,23 +241,27 @@
         path: /etc/ssl_certs/{{ tls.acme_domains[0] }}/private.pem
       register: private_key
 
-    - name: TLS | Postcheck | Forcibly place keypair to target dir
-      become: yes
-      become_user: root
-      copy:
-        src: '{{ item["src"] }}'
-        remote_src: yes
-        dest: '{{ item["dest"] }}'
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '{{ item["mode"] }}'
-      with_items:
-        - {src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key",
-           dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem",
-           mode: 0600}
-        - {src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/fullchain.cer",
-           dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/fullchain.pem",
-           mode: 0644}
+        #- name: TLS | Postcheck | Forcibly place keypair to target dir
+        #  become: yes
+        #  become_user: root
+        #  copy:
+        #    src: '{{ item["src"] }}'
+        #    remote_src: yes
+        #    dest: '{{ item["dest"] }}'
+        #    owner: "{{ ansible_user }}"
+        #    group: "{{ ansible_user }}"
+        #    mode: '{{ item["mode"] }}'
+        #  with_items:
+        #    - {src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key",
+        #       dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem",
+        #       mode: 0600}
+        #    - {src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/fullchain.cer",
+        #       dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/fullchain.pem",
+        #       mode: 0644}
+        #  when: not private_key.stat.exists
+    - name: TLS | Deploy | Fail if private key was not created
+      fail:
+        msg: "Certificate missing. Check issuance process logs to get reasons"
       when: not private_key.stat.exists
 
     - name: TLS | Deploy | Create HAProxy chain
@@ -224,5 +280,9 @@
     - name: TLS | Postcheck | Fail if got real error on cert issuing time
       fail:
         msg: "Got an error while issue certificate: \n {{ ch_ex.stdout }}"
-      when: ch_ex is defined and ch_ex.rc is defined and ch_ex.rc != 0 and not 'Domains not changed' in ch_ex.stdout
+      when:
+        - ch_ex is defined
+        - ch_ex.rc is defined
+        - ch_ex.rc != 0
+        - not 'Domains not changed' in ch_ex.stdout
   when: tls.acme_domains | length != 0
