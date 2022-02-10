@@ -277,6 +277,12 @@
       notify:
         - Haproxy reload
 
+    - name: TLS | Deploy | Reload Nginx
+      become: yes
+      become_user: root
+      shell: 
+        cmd: acme.sh  --install-cert  -d {{ acme_domains }} --reload-cmd "service nginx reload"
+
     - name: TLS | Postcheck | Fail if got real error on cert issuing time
       fail:
         msg: "Got an error while issue certificate: \n {{ ch_ex.stdout }}"
