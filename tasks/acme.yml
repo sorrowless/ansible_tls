@@ -286,12 +286,3 @@
         - ch_ex.rc != 0
         - not 'Domains not changed' in ch_ex.stdout
   when: tls.acme_domains | length != 0
-
-- name: Reload nginx to activate letsencrypt site
-  service: name=nginx state=restarted
-
-- name: Add letsencrypt cronjob for cert renewal
-  cron:
-    name: letsencrypt_renewal
-    special_time: weekly
-    job: letsencrypt --renew certonly -n --webroot -w /var/www/letsencrypt -m {{ letsencrypt_email }} --agree-tos -d {{ domain_name }} && service nginx reload
