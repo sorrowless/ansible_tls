@@ -3,6 +3,7 @@ tls_common:
   # Types: local, acme
   ## Local cert variables
   type: local
+  nginx_install: ""
   local_src_key: false
   local_src_cert: false
   ## Acme cert variables

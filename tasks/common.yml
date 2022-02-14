@@ -13,3 +13,12 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: 0755
+
+- name: "Check if NGINX is installed"
+  package_facts:
+    manager: "auto"
+
+- name: "NGINX test result"
+  debug: 
+    msg: "NGINX found"
+  when: "'nginx' in ansible_facts.packages"

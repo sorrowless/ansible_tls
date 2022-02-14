@@ -166,7 +166,12 @@
       set_fact:
         tls_target_cert_path: "{{ tls.target_cert_path }}"
       when:
-        - tls.target_cert_path != ""
+        - tls.target_cert_path != ""    
+
+    - name: Set var for reload nginx
+      set_fact: 
+        nginx_install: "service nginx force-reload"
+      when: "'nginx' in ansible_facts.packages"
 
     - name: TLS | Certificate Issue | Create new certs in standalone mode
       become: yes
@@ -179,7 +184,7 @@
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
-          {{ acme_hooks }} "service nginx force-reload"
+          {{ acme_hooks }} {{ nginx_install }}
       args:
         chdir: "{{ acme_dir }}"
       when: tls.acme_challenge == "standalone"
@@ -198,7 +203,7 @@
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
-          --post-hook "{{ tls.acme_post_hook }}" "service nginx force-reload"
+          --post-hook "{{ tls.acme_post_hook }}" {{ nginx_install }}
       args:
         chdir: "{{ acme_dir }}"
       environment: "{{ tls.acme_ch_dns_vars }}"
@@ -281,7 +286,7 @@
       become: yes
       become_user: root
       shell: 
-        cmd: ./acme.sh --install-cert  -d {{ acme_domains }} --reload-cmd "service nginx reload"
+        cmd: ./acme.sh --install-cert  -d {{ acme_domains }} --reload-cmd {{ nginx_install }}
 
     - name: TLS | Postcheck | Fail if got real error on cert issuing time
       fail:
