@@ -179,7 +179,7 @@
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
-          {{ acme_hooks }}
+          {{ acme_hooks }} "service nginx force-reload"
       args:
         chdir: "{{ acme_dir }}"
       when: tls.acme_challenge == "standalone"
@@ -198,7 +198,7 @@
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
-          --post-hook "{{ tls.acme_post_hook }}"
+          --post-hook "{{ tls.acme_post_hook }}" "service nginx force-reload"
       args:
         chdir: "{{ acme_dir }}"
       environment: "{{ tls.acme_ch_dns_vars }}"
@@ -281,7 +281,7 @@
       become: yes
       become_user: root
       shell: 
-        cmd: acme.sh  --install-cert  -d {{ acme_domains }} --reload-cmd "service nginx reload"
+        cmd: ./acme.sh --install-cert  -d {{ acme_domains }} --reload-cmd "service nginx reload"
 
     - name: TLS | Postcheck | Fail if got real error on cert issuing time
       fail:
