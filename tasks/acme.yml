@@ -79,6 +79,13 @@
         msg: "NGINX NOT found"
       when: "'nginx' not in ansible_facts.packages"
 
+    - name: Populate service facts
+      service_facts:  
+
+    - name: "Check state NGINX"
+      debug:
+        msg: "{{ ansible_facts.services | json_query(' * | [?name == `nginx.service`].state ') }}" 
+
     # As we set random time for domains, check for them to not add a row
     # for the same domain second time
     - name: TLS | Installation | Check for previously generated crontab entry
