@@ -69,12 +69,12 @@
       package_facts:
         manager: "auto"
 
-    - name: "NGINX test result"
+    - name: "NGINX check install"
       debug: 
         msg: "NGINX found"
       when: "'nginx' in ansible_facts.packages"
 
-    - name: "NGINX test result"
+    - name: "NGINX check install"
       debug: 
         msg: "NGINX NOT found"
       when: "'nginx' not in ansible_facts.packages"
@@ -161,7 +161,7 @@
     - name: Set var for CA path
       set_fact:
         tls_target_ca_path: "{{ tls.target_ca_path }}"
-      when:
+      when:                      
         - tls.target_ca_path != ""
 
     - name: Set var for key path
@@ -184,8 +184,23 @@
 
     - name: Set var for reload nginx
       set_fact: 
-        nginx_install: "service nginx force-reload"
+        nginx_install: "systemctl reload nginx"
       when: "'nginx' in ansible_facts.packages"
+
+    - name: Set var for disable acme_hooks
+      set_fact: 
+        acme_hooks: false
+      when: "'nginx' not in ansible_facts.packages"
+
+    - name: Set var for disable acme_pre_hook
+      set_fact: 
+        acme_pre_hook: ''
+      when: "'nginx' not in ansible_facts.packages"
+    
+    - name: Set var for disable acme_post_hook
+      set_fact: 
+        acme_post_hook: ''
+      when: "'nginx' not in ansible_facts.packages"
 
     - name: TLS | Certificate Issue | Create new certs in standalone mode without nginx
       become: yes
