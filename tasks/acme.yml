@@ -65,6 +65,20 @@
           crontab -l | sed '/.*acme.sh.*\/dev\/null.*/d' | crontab -
       when: crontab_default_acme_entry.rc == 0
 
+    - name: "Check if NGINX is installed"
+      package_facts:
+        manager: "auto"
+
+    - name: "NGINX test result"
+      debug: 
+        msg: "NGINX found"
+      when: "'nginx' in ansible_facts.packages"
+
+    - name: "NGINX test result"
+      debug: 
+        msg: "NGINX NOT found"
+      when: "'nginx' not in ansible_facts.packages"
+
     # As we set random time for domains, check for them to not add a row
     # for the same domain second time
     - name: TLS | Installation | Check for previously generated crontab entry
@@ -173,7 +187,28 @@
         nginx_install: "service nginx force-reload"
       when: "'nginx' in ansible_facts.packages"
 
-    - name: TLS | Certificate Issue | Create new certs in standalone mode
+    - name: TLS | Certificate Issue | Create new certs in standalone mode without nginx
+      become: yes
+      become_user: root
+      shell:
+        cmd: |
+          ./acme.sh --issue --{{ tls.acme_challenge }} {{ acme_domains }} \
+          --ca-file {{ tls_target_ca_path }} \
+          --key-file {{ tls_target_key_path }} \
+          --fullchain-file {{ tls_target_fullchain_path }} \
+          --cert-file {{ tls_target_cert_path }} \
+          --home {{ acme_dir }} --config-home {{ acme_dir }} \
+          {{ acme_hooks }}
+      args:
+        chdir: "{{ acme_dir }}"
+      when: 
+        - tls.acme_challenge == "standalone"
+        - "'nginx' not in ansible_facts.packages"
+      register: ch_ex
+      changed_when: ch_ex.rc != 2
+      failed_when: false
+
+    - name: TLS | Certificate Issue | Create new certs in standalone mode with nginx
       become: yes
       become_user: root
       shell:
@@ -187,12 +222,36 @@
           {{ acme_hooks }} {{ nginx_install }}
       args:
         chdir: "{{ acme_dir }}"
-      when: tls.acme_challenge == "standalone"
+      when: 
+        - tls.acme_challenge == "standalone"
+        - "'nginx' in ansible_facts.packages"
       register: ch_ex
       changed_when: ch_ex.rc != 2
       failed_when: false
 
-    - name: TLS | Certificate Issue | Create new certs in DNS mode
+    - name: TLS | Certificate Issue | Create new certs in DNS mode without nginx
+      become: yes
+      become_user: root
+      shell:
+        cmd: |
+          ./acme.sh --issue --dns {{ tls.acme_ch_dns_type }} {{ acme_domains }} \
+          --ca-file {{ tls_target_ca_path }} \
+          --key-file {{ tls_target_key_path }} \
+          --fullchain-file {{ tls_target_fullchain_path }} \
+          --cert-file {{ tls_target_cert_path }} \
+          --home {{ acme_dir }} --config-home {{ acme_dir }} \
+          --post-hook "{{ tls.acme_post_hook }}"
+      args:
+        chdir: "{{ acme_dir }}"
+      environment: "{{ tls.acme_ch_dns_vars }}"
+      when: 
+        - tls.acme_challenge == "dns"
+        - "'nginx' not in ansible_facts.packages"
+      register: ch_ex
+      changed_when: "'Domains not changed' not in ch_ex.stdout"
+      failed_when: false
+
+    - name: TLS | Certificate Issue | Create new certs in DNS mode with nginx
       become: yes
       become_user: root
       shell:
@@ -207,7 +266,9 @@
       args:
         chdir: "{{ acme_dir }}"
       environment: "{{ tls.acme_ch_dns_vars }}"
-      when: tls.acme_challenge == "dns"
+      when: 
+        - tls.acme_challenge == "dns"
+        - "'nginx' in ansible_facts.packages"
       register: ch_ex
       changed_when: "'Domains not changed' not in ch_ex.stdout"
       failed_when: false
