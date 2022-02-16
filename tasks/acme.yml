@@ -130,6 +130,28 @@
         acme_hooks: '--pre-hook "{{ tls.acme_pre_hook }}" --post-hook "{{ tls.acme_post_hook }}"'
       when: tls.acme_hooks
 
+    - name: Configuration webroot
+      become: yes
+      become_user: root
+      shell: 
+        cmd: |
+          mkdir -p /var/www/le_root/.well-known/acme-challenge && \
+          chown -R root:www-data /var/www/le_root
+
+    - name: Install system le_root config
+      become: yes
+      become_user: root
+      template:
+        src: templates/le_root.conf.j2
+        dest: /var/www/le_root/le_root.conf
+
+    - name: Install system default config
+      become: yes
+      become_user: root
+      template:
+        src: templates/default.conf.j2
+        dest: /var/www/le_root/default.conf
+
     - name: TLS | Certificate Issue | Register account prior to issue certificate
       become: yes
       become_user: root
@@ -191,7 +213,7 @@
 
     - name: Set var for reload nginx
       set_fact: 
-        nginx_install: "systemctl reload nginx"
+        nginx_install: "systemctl reload nginx.service"
       when: "'nginx' in ansible_facts.packages"
 
     - name: Set var for disable acme_hooks
