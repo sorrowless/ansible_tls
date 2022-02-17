@@ -65,6 +65,13 @@
           crontab -l | sed '/.*acme.sh.*\/dev\/null.*/d' | crontab -
       when: crontab_default_acme_entry.rc == 0
 
+    - name: Check acme_challenge
+      fail: msg="You use acme_challenge ="{{tls.acme_challenge }}". Please use webroot, standalone or dns method."
+      when: 
+        - tls.acme_challenge != "webroot"
+        - tls.acme_challenge != "standalone"
+        - tls.acme_challenge != "dns"
+
     # As we set random time for domains, check for them to not add a row
     # for the same domain second time
     - name: TLS | Installation | Check for previously generated crontab entry
@@ -108,6 +115,15 @@
       set_fact:
         acme_hooks: '--pre-hook "{{ tls.acme_pre_hook }}" --post-hook "{{ tls.acme_post_hook }}"'
       when: tls.acme_hooks
+
+    - name: Configuration webroot
+      become: yes
+      become_user: root
+      shell: 
+        cmd: |
+          mkdir -p /var/www/le_root/.well-known/acme-challenge && \
+          chown -R root:www-data /var/www/le_root
+      when: tls.acme_challenge == "webroot"
 
     - name: TLS | Certificate Issue | Register account prior to issue certificate
       become: yes
@@ -166,7 +182,19 @@
       set_fact:
         tls_target_cert_path: "{{ tls.target_cert_path }}"
       when:
-        - tls.target_cert_path != ""
+        - tls.target_cert_path != ""    
+
+    - name: TLS | Certificate Issue | Create new certs in webroot mode
+      become: yes
+      become_user: root
+      shell:
+        cmd: ./acme.sh --issue {{ acme_domains }} -w /var/www/le_root
+      args:
+        chdir: "{{ acme_dir }}"
+      when: tls.acme_challenge == "webroot"
+      register: ch_ex
+      changed_when: ch_ex.rc != 2
+      failed_when: false
 
     - name: TLS | Certificate Issue | Create new certs in standalone mode
       become: yes
@@ -286,3 +314,4 @@
         - ch_ex.rc != 0
         - not 'Domains not changed' in ch_ex.stdout
   when: tls.acme_domains | length != 0
+  
