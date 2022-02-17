@@ -84,7 +84,14 @@
 
     - name: "Check state NGINX"
       debug:
-        msg: "{{ ansible_facts.services | json_query(' * | [?name == `nginx.service`].state ') }}" 
+        msg: "{{ ansible_facts.services | json_query(' * | [?name == `nginx.service`].state ') }}"
+
+    - name: Check acme_challenge
+      fail: msg="You use acme_challenge ="{{tls.acme_challenge }}". Please use webroot, standalone or dns method."
+      when: 
+        - tls.acme_challenge != "webroot"
+        - tls.acme_challenge != "stanalone"
+        - tls.acme_challenge != "dns"
 
     # As we set random time for domains, check for them to not add a row
     # for the same domain second time
@@ -230,6 +237,19 @@
       set_fact: 
         acme_post_hook: ''
       when: "'nginx' not in ansible_facts.packages"
+
+    - name: TLS | Certificate Issue | Create new certs in webroot mode
+      become: yes
+      become_user: root
+      shell:
+        cmd: ./acme.sh --issue {{ acme_domains }} -w /var/www/le_root
+      args:
+        chdir: "{{ acme_dir }}"
+      when: 
+        - tls.acme_challenge == "webroot"
+      register: ch_ex
+      changed_when: ch_ex.rc != 2
+      failed_when: false
 
     - name: TLS | Certificate Issue | Create new certs in standalone mode without nginx
       become: yes
