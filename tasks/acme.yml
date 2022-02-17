@@ -163,7 +163,7 @@
     - name: Set var for CA path
       set_fact:
         tls_target_ca_path: "{{ tls.target_ca_path }}"
-      when:                      
+      when:
         - tls.target_ca_path != ""
 
     - name: Set var for key path
@@ -191,8 +191,7 @@
         cmd: ./acme.sh --issue {{ acme_domains }} -w /var/www/le_root
       args:
         chdir: "{{ acme_dir }}"
-      when: 
-        - tls.acme_challenge == "webroot"
+      when: tls.acme_challenge == "webroot"
       register: ch_ex
       changed_when: ch_ex.rc != 2
       failed_when: false
@@ -211,8 +210,7 @@
           {{ acme_hooks }}
       args:
         chdir: "{{ acme_dir }}"
-      when: 
-        - tls.acme_challenge == "standalone"
+      when: tls.acme_challenge == "standalone"
       register: ch_ex
       changed_when: ch_ex.rc != 2
       failed_when: false
@@ -232,8 +230,7 @@
       args:
         chdir: "{{ acme_dir }}"
       environment: "{{ tls.acme_ch_dns_vars }}"
-      when: 
-        - tls.acme_challenge == "dns"
+      when: tls.acme_challenge == "dns"
       register: ch_ex
       changed_when: "'Domains not changed' not in ch_ex.stdout"
       failed_when: false
