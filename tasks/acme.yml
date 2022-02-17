@@ -196,7 +196,7 @@
       changed_when: ch_ex.rc != 2
       failed_when: false
 
-    - name: TLS | Certificate Issue | Create new certs in standalone mode without nginx
+    - name: TLS | Certificate Issue | Create new certs in standalone mode
       become: yes
       become_user: root
       shell:
@@ -216,7 +216,7 @@
       changed_when: ch_ex.rc != 2
       failed_when: false
 
-    - name: TLS | Certificate Issue | Create new certs in DNS mode with nginx
+    - name: TLS | Certificate Issue | Create new certs in DNS mode
       become: yes
       become_user: root
       shell:
@@ -227,7 +227,7 @@
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
-          --post-hook "{{ tls.acme_post_hook }}" {{ nginx_install }}
+          --post-hook "{{ tls.acme_post_hook }}"
       args:
         chdir: "{{ acme_dir }}"
       environment: "{{ tls.acme_ch_dns_vars }}"
