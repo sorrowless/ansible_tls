@@ -189,13 +189,13 @@
       become_user: root
       shell:
         cmd: |
-          ./acme.sh --issue {{ acme_domains }} -w /var/www/le_root \
+          ./acme.sh --issue --force  {{ acme_domains }} --webroot /var/www/le_root \
           --ca-file {{ tls_target_ca_path }} \
           --key-file {{ tls_target_key_path }} \
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
-          {{ acme_hooks }}
+          {{ acme_hooks }} 
       args:
         chdir: "{{ acme_dir }}"
       when: tls.acme_challenge == "webroot"
