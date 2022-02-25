@@ -116,13 +116,25 @@
         acme_hooks: '--pre-hook "{{ tls.acme_pre_hook }}" --post-hook "{{ tls.acme_post_hook }}"'
       when: tls.acme_hooks
 
-    - name: Configuration webroot
+    # - name: Configuration webroot
+    #   become: yes
+    #   become_user: root
+    #   shell: 
+    #     cmd: |
+    #       mkdir -p /var/www/le_root/.well-known/acme-challenge && \
+    #       chown -R root:www-data /var/www/le_root
+    #   when: tls.acme_challenge == "webroot"
+
+    - name: Create webroot directory
       become: yes
       become_user: root
-      shell: 
-        cmd: |
-          mkdir -p /var/www/le_root/.well-known/acme-challenge && \
-          chown -R root:www-data /var/www/le_root
+      file: path=/var/www/le_root/.well-known/acme-challenge state=directory
+      when: tls.acme_challenge == "webroot"
+
+    - name: Chown webroot
+      become: yes
+      become_user: root
+      file: path=/var/www/le_root
       when: tls.acme_challenge == "webroot"
 
     - name: TLS | Certificate Issue | Register account prior to issue certificate
@@ -189,7 +201,7 @@
       become_user: root
       shell:
         cmd: |
-          ./acme.sh --issue --force  {{ acme_domains }} --webroot /var/www/le_root \
+          ./acme.sh --issue {{ acme_domains }} --webroot /var/www/le_root \
           --ca-file {{ tls_target_ca_path }} \
           --key-file {{ tls_target_key_path }} \
           --fullchain-file {{ tls_target_fullchain_path }} \
