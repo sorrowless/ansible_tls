@@ -25,6 +25,7 @@ tls_common:
     GD_Key: somekeyshouldbehere
     GD_Secret: secretshouldbehere
   # After moving to ZeroSSL account is required
+  acme_default_ca: letsencrypt
   acme_account_email: me@example.com
   # Whether or not use notifications
   acme_notify: false

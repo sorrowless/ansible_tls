@@ -67,7 +67,7 @@
 
     - name: Check acme_challenge
       fail: msg="You use acme_challenge ="{{tls.acme_challenge }}". Please use webroot, standalone or dns method."
-      when: 
+      when:
         - tls.acme_challenge != "webroot"
         - tls.acme_challenge != "standalone"
         - tls.acme_challenge != "dns"
@@ -119,7 +119,7 @@
     - name: Configuration webroot
       become: yes
       become_user: root
-      shell: 
+      shell:
         cmd: |
           mkdir -p /var/www/le_root/.well-known/acme-challenge && \
           chown -R root:www-data /var/www/le_root
@@ -182,7 +182,17 @@
       set_fact:
         tls_target_cert_path: "{{ tls.target_cert_path }}"
       when:
-        - tls.target_cert_path != ""    
+        - tls.target_cert_path != ""
+
+    - name: TLS | Certificate Issue | Set default CA
+      become: yes
+      become_user: root
+      shell:
+        cmd: |
+          ./acme.sh --set-default-ca --server {{ tls.acme_default_ca }} \
+      args:
+        chdir: "{{ acme_dir }}"
+      environment: "{{ tls.acme_ch_dns_vars }}"
 
     - name: TLS | Certificate Issue | Create new certs in webroot mode
       become: yes
@@ -314,4 +324,4 @@
         - ch_ex.rc != 0
         - not 'Domains not changed' in ch_ex.stdout
   when: tls.acme_domains | length != 0
-  
+
