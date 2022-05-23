@@ -116,13 +116,15 @@
         acme_hooks: '--pre-hook "{{ tls.acme_pre_hook }}" --post-hook "{{ tls.acme_post_hook }}"'
       when: tls.acme_hooks
 
-    - name: Configuration webroot
+    - name: TLS | Certificate Issue | Ensure .well-known directory for webroot
       become: yes
       become_user: root
-      shell:
-        cmd: |
-          mkdir -p /var/www/le_root/.well-known/acme-challenge && \
-          chown -R root:www-data /var/www/le_root
+      file:
+        path: "{{ tls.webroot_dir}}/.well-known/acme-challenge"
+        state: directory
+        mode: 0755
+        owner: root
+        group: www-data
       when: tls.acme_challenge == "webroot"
 
     - name: TLS | Certificate Issue | Register account prior to issue certificate
@@ -198,7 +200,14 @@
       become: yes
       become_user: root
       shell:
-        cmd: ./acme.sh --issue {{ acme_domains }} -w /var/www/le_root
+        cmd: |
+          ./acme.sh --issue {{ acme_domains }} -w {{ tls.webroot_dir}} \
+          --ca-file {{ tls_target_ca_path }} \
+          --key-file {{ tls_target_key_path }} \
+          --fullchain-file {{ tls_target_fullchain_path }} \
+          --cert-file {{ tls_target_cert_path }} \
+          --home {{ acme_dir }} --config-home {{ acme_dir }} \
+          {{ acme_hooks }}
       args:
         chdir: "{{ acme_dir }}"
       when: tls.acme_challenge == "webroot"
