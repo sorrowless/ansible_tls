@@ -116,13 +116,15 @@
         acme_hooks: '--pre-hook "{{ tls.acme_pre_hook }}" --post-hook "{{ tls.acme_post_hook }}"'
       when: tls.acme_hooks
 
-    - name: Configuration webroot
+    - name: TLS | Certificate Issue | Ensure .well-known directory for webroot
       become: yes
       become_user: root
-      shell:
-        cmd: |
-          mkdir -p /var/www/le_root/.well-known/acme-challenge && \
-          chown -R root:www-data /var/www/le_root
+      file:
+        path: "{{ tls.webroot_dir}}/.well-known/acme-challenge"
+        state: directory
+        mode: 0755
+        owner: root
+        group: www-data
       when: tls.acme_challenge == "webroot"
 
     - name: TLS | Certificate Issue | Register account prior to issue certificate
@@ -184,6 +186,27 @@
       when:
         - tls.target_cert_path != ""
 
+    - name: Set var for acme force
+      set_fact:
+        tls_acme_force: "{{ tls.acme_force }}"
+
+    - name: TLS | Precheck | Ensure certs list
+      become: yes
+      become_user: root
+      shell:
+        cmd: |
+          openssl x509 -noout -in {{ tls_target_fullchain_path }} -ext subjectAltName | tail -n1 | tr , '\n' | cut -d':' -f2
+      changed_when: false
+      failed_when: false
+      register: cert_list
+
+    - name: Set var for acme force after precheck
+      become: yes
+      become_user: root
+      set_fact:
+        tls_acme_force: "--force"
+      when: cert_list.stdout_lines | symmetric_difference(tls.acme_domains) | length != 0
+
     - name: TLS | Certificate Issue | Set default CA
       become: yes
       become_user: root
@@ -198,7 +221,15 @@
       become: yes
       become_user: root
       shell:
-        cmd: ./acme.sh --issue {{ acme_domains }} -w /var/www/le_root
+        cmd: |
+          ./acme.sh --issue {{ acme_domains }} -w {{ tls.webroot_dir}} \
+          --ca-file {{ tls_target_ca_path }} \
+          --key-file {{ tls_target_key_path }} \
+          --fullchain-file {{ tls_target_fullchain_path }} \
+          --cert-file {{ tls_target_cert_path }} \
+          --home {{ acme_dir }} --config-home {{ acme_dir }} \
+          {{ acme_hooks }} \
+          {{ tls_acme_force }}
       args:
         chdir: "{{ acme_dir }}"
       when: tls.acme_challenge == "webroot"
@@ -217,7 +248,8 @@
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
-          {{ acme_hooks }}
+          {{ acme_hooks }} \
+          {{ tls_acme_force }}
       args:
         chdir: "{{ acme_dir }}"
       when: tls.acme_challenge == "standalone"
@@ -236,7 +268,8 @@
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
-          --post-hook "{{ tls.acme_post_hook }}"
+          --post-hook "{{ tls.acme_post_hook }}" \
+          {{ tls_acme_force }}
       args:
         chdir: "{{ acme_dir }}"
       environment: "{{ tls.acme_ch_dns_vars }}"
