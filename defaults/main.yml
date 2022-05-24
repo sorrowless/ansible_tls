@@ -31,6 +31,7 @@ tls_common:
   acme_notify: false
   acme_notify_envvars: ""
   acme_notify_hook_type: telegram
+  acme_force: ""
   # Dir where certs will be placed to
   target_dir: /etc/ssl_certs
   target_ca_path: ""
