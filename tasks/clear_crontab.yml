@@ -1,5 +1,5 @@
 ---
-- name: TLS | Installation | Check for acme.sh crontab entry
+- name: TLS | Check for acme.sh crontab entry
   become: yes
   become_user: root
   shell:
@@ -9,7 +9,7 @@
   failed_when: false
   register: crontab_acme_sh_entry
 
-- name: TLS | Instalation | Delete acme.sh crontab entry
+- name: TLS | Delete acme.sh crontab entry
   become: yes
   become_user: root
   shell:
