@@ -16,6 +16,12 @@
   tags:
     - always
 
+- name: TLS | Include clear crontab
+  import_tasks: "clear_crontab.yml"
+  tags:
+    - never
+    - clear_crontab
+
 - name: TLS | Include according processing module
   include_tasks: "common.yml"
   loop: "{{ tls_data }}"

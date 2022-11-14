@@ -1,0 +1,18 @@
+---
+- name: TLS | Installation | Check for acme.sh crontab entry
+  become: yes
+  become_user: root
+  shell:
+    cmd: |
+      crontab -l | egrep -q '.*acme.sh.*'
+  changed_when: false
+  failed_when: false
+  register: crontab_acme_sh_entry
+
+- name: TLS | Instalation | Delete acme.sh crontab entry
+  become: yes
+  become_user: root
+  shell:
+    cmd: |
+      crontab -l | sed '/.*acme.sh.*/d' | crontab -
+  when: crontab_acme_sh_entry.rc == 0
