@@ -1,0 +1,4 @@
+---
+tls_acme_account_subdir:
+  letsencrypt: "ca/acme-v02.api.letsencrypt.org/directory"
+  zerossl: "ca/acme.zerossl.com/v2/DV90"

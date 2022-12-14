@@ -1,0 +1,93 @@
+---
+- name: Try to find existing account configuration
+  become: yes
+  become_user: root
+  ansible.builtin.find:
+    paths: "/root/"
+    file_type: directory
+    use_regex: yes
+    hidden: true
+    depth: 1
+    patterns: ".acme.sh.*"
+  register: existing_accounts   
+
+- name: Set cached account variable
+  set_fact:
+    cached_account_not_found: true
+
+- name: Show found cached accounts
+  debug:
+    var: existing_accounts
+    
+- name: Set fact with first found account fulldir
+  set_fact:
+    tls_cached_account_json: "{{ existing_accounts.files[0].path }}/{{ tls_acme_account_subdir[tls.acme_default_ca] }}/account.json"
+    tls_cached_account_key: "{{ existing_accounts.files[0].path }}/{{ tls_acme_account_subdir[tls.acme_default_ca] }}/account.key"
+    tls_cached_ca_conf: "{{ existing_accounts.files[0].path }}/{{ tls_acme_account_subdir[tls.acme_default_ca] }}/ca.conf"
+  when:
+    - existing_accounts.files | length > 0
+
+- name: Get account.conf stat
+  stat:
+    path: "{{ tls_cached_account_json }}"
+  register: account_json
+
+- name: Set cached vars
+  block:
+
+    - name: Get account.json data
+      slurp:
+        src: "{{ tls_cached_account_json }}"
+      register: tls_account_json_data
+
+    - name: Get account.key data
+      slurp:
+        src: "{{ tls_cached_account_key }}"
+      register: tls_account_key_data
+
+    - name: Get ca.conf data
+      slurp:
+        src: "{{ tls_cached_ca_conf }}"
+      register: tls_ca_conf_data
+
+    - name: Ensure target directory
+      file:
+        path: "{{ acme_dir }}/{{ tls_acme_account_subdir[tls.acme_default_ca] }}"
+        state: directory
+        mode: 0755
+        owner: root
+        group: root
+
+    - name: Copy account.json data
+      copy:
+        content: "{{ tls_account_json_data.content | b64decode }}"
+        dest: "{{ acme_dir }}/{{ tls_acme_account_subdir[tls.acme_default_ca] }}/account.json"
+        mode: 0644
+        owner: root
+        group: root
+
+    - name: Copy account.key data
+      copy:
+        content: "{{ tls_account_key_data.content | b64decode }}"
+        dest: "{{ acme_dir }}/{{ tls_acme_account_subdir[tls.acme_default_ca] }}/account.key"
+        mode: 0600
+        owner: root
+        group: root
+
+    - name: Copy ca.conf data
+      copy:
+        content: "{{ tls_ca_conf_data.content | b64decode }}"
+        dest: "{{ acme_dir }}/{{ tls_acme_account_subdir[tls.acme_default_ca] }}/ca.conf"
+        mode: 0644
+        owner: root
+        group: root
+  when:
+    - account_json.stat.exists
+    
+- name: Set cached account variable
+  set_fact:
+    cached_account_not_found: false
+  when:
+    - tls_account_json_data is defined and tls_account_json_data
+    - tls_account_key_data is defined and tls_account_key_data
+    - tls_ca_conf_data is defined and tls_ca_conf_data

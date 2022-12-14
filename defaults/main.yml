@@ -47,5 +47,7 @@ tls_common:
   # If target_format is 'haproxy', this filename will be used
   target_bundle_name: bundle.pem
   webroot_dir: /var/www/le_root
+  # Whether to try use already created account on the host
+  use_cached_account: true
 tls_group: {}
 tls_host: {}

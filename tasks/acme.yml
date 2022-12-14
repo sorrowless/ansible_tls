@@ -128,6 +128,17 @@
         chdir: "{{ acme_dir }}"
       environment: "{{ tls.acme_ch_dns_vars }}"
 
+    - name: TLS | Certificate Issue | Set cached account data
+      include_tasks:
+        file: acme_cache_account.yml
+        apply:
+          tags: 
+            - cache_account
+      tags:
+        - cache_account
+      when:
+        - tls.use_cached_account
+
     - name: TLS | Certificate Issue | Register account prior to issue certificate
       become: yes
       become_user: root
@@ -137,6 +148,10 @@
           --home {{ acme_dir }} --config-home {{ acme_dir }}
       args:
         chdir: "{{ acme_dir }}"
+      when:
+        - (not tls.use_cached_account) or cached_account_not_found
+      tags:
+        - tls_register_account
       failed_when: false
 
     - name: Set var for CA path
