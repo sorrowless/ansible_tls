@@ -3,7 +3,7 @@
   become: yes
   become_user: root
   file:
-    path: "{{ tls.target_dir }}/{{ self_signed_dir }}"
+    path: "{{ tls.target_dir }}/{{ tls.self_signed_dir }}"
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
@@ -11,10 +11,10 @@
 
 - name: Create private key (RSA, 4096 bits)
   community.crypto.openssl_privatekey:
-    path: "{{ tls.target_dir }}/{{ self_signed_dir }}/{{ target_key_name }}"
+    path: "{{ tls.target_dir }}/{{ tls.self_signed_dir }}/{{ tls.target_key_name }}"
 
 - name: Create simple self-signed certificate
   community.crypto.x509_certificate:
-    path: "{{ tls.target_dir }}/{{ self_signed_dir }}/{{ target_cert_name }}"
-    privatekey_path: "{{ tls.target_dir }}/{{ self_signed_dir }}/{{ target_key_name }}"
+    path: "{{ tls.target_dir }}/{{ tls.self_signed_dir }}/{{ tls.target_cert_name }}"
+    privatekey_path: "{{ tls.target_dir }}/{{ tls.self_signed_dir }}/{{ tls.target_key_name }}"
     provider: selfsigned
