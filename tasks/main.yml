@@ -33,6 +33,7 @@
   loop: "{{ tls_data }}"
   loop_control:
     loop_var: tls
+  when: tls.self_signed == false
 
 - name: TLS | Include self_signed tasks
   include_tasks: self_signed.yml
