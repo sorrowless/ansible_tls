@@ -50,6 +50,6 @@ tls_common:
   # Whether to try use already created account on the host
   use_cached_account: true
   self_signed: true
-  self_signed_dir: site.local
+  self_signed_domain: site.local
 tls_group: {}
 tls_host: {}
