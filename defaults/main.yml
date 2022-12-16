@@ -49,5 +49,7 @@ tls_common:
   webroot_dir: /var/www/le_root
   # Whether to try use already created account on the host
   use_cached_account: true
+  self_signed: false
+  self_signed_domain: site.local
 tls_group: {}
 tls_host: {}
