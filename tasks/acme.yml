@@ -23,7 +23,7 @@
       become_user: root
       set_fact:
         acme_checkout_dir: /root/acme.sh
-        acme_dir: "{{ '/root/.acme.sh.' + tls.acme_domains[0] if tls.acme_challenge == 'dns' else '/root/.acme.sh' }}"
+        acme_dir: "{{ '/root/.acme.sh.' + tls.acme_domains[0] }}"
 
     - name: TLS | Installation | Checkout acme.sh repo
       become: yes
