@@ -51,5 +51,6 @@ tls_common:
   use_cached_account: true
   self_signed: false
   self_signed_domain: site.local
+  keylength: ec-256
 tls_group: {}
 tls_host: {}
