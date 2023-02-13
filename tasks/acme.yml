@@ -231,6 +231,7 @@
           ./acme.sh --issue {{ acme_domains }} -w {{ tls.webroot_dir}} \
           --ca-file {{ tls_target_ca_path }} \
           --key-file {{ tls_target_key_path }} \
+          --keylength {{ tls.keylength }} \
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
@@ -252,6 +253,7 @@
           ./acme.sh --issue --{{ tls.acme_challenge }} {{ acme_domains }} \
           --ca-file {{ tls_target_ca_path }} \
           --key-file {{ tls_target_key_path }} \
+          --keylength {{ tls.keylength }} \
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
@@ -273,11 +275,12 @@
           ./acme.sh --issue --dns {{ tls.acme_ch_dns_type }} {{ acme_domains }} \
           --ca-file {{ tls_target_ca_path }} \
           --key-file {{ tls_target_key_path }} \
+          --keylength {{ tls.keylength }} \
           --fullchain-file {{ tls_target_fullchain_path }} \
           --cert-file {{ tls_target_cert_path }} \
           --home {{ acme_dir }} --config-home {{ acme_dir }} \
-          --post-hook "{{ tls.acme_post_hook }}" \
           --server {{ tls.acme_default_ca }} \
+          {{ acme_hooks }} \
           {{ tls_acme_force }}
       args:
         chdir: "{{ acme_dir }}"
@@ -298,47 +301,11 @@
       environment: "{{ tls.acme_notify_envvars }}"
       when: tls.acme_notify
 
-    - name: TLS | Postinstall | Ensure prehook for cron
-      become: yes
-      become_user: root
-      lineinfile:
-        path: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.conf"
-        regexp: '^Le_PreHook='
-        line: 'Le_PreHook="{{ tls.acme_pre_hook }}"'
-      when: tls.acme_hooks
-
-    - name: TLS | Postinstall | Ensure posthook for cron
-      become: yes
-      become_user: root
-      lineinfile:
-        path: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.conf"
-        regexp: '^Le_PostHook='
-        line: 'Le_PostHook="{{ tls.acme_post_hook }}"'
-      when: tls.acme_hooks
-
     - name: TLS | Postcheck | Ensure certs placement
       stat:
-        path: /etc/ssl_certs/{{ tls.acme_domains[0] }}/private.pem
+        path: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem"
       register: private_key
 
-        #- name: TLS | Postcheck | Forcibly place keypair to target dir
-        #  become: yes
-        #  become_user: root
-        #  copy:
-        #    src: '{{ item["src"] }}'
-        #    remote_src: yes
-        #    dest: '{{ item["dest"] }}'
-        #    owner: "{{ ansible_user }}"
-        #    group: "{{ ansible_user }}"
-        #    mode: '{{ item["mode"] }}'
-        #  with_items:
-        #    - {src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key",
-        #       dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem",
-        #       mode: 0600}
-        #    - {src: "{{ acme_dir }}/{{ tls.acme_domains[0] }}/fullchain.cer",
-        #       dest: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/fullchain.pem",
-        #       mode: 0644}
-        #  when: not private_key.stat.exists
     - name: TLS | Deploy | Fail if private key was not created
       fail:
         msg: "Certificate missing. Check issuance process logs to get reasons"
@@ -350,8 +317,8 @@
       shell:
         cmd: |
           cat \
-          {{ acme_dir }}/{{ tls.acme_domains[0] }}/fullchain.cer \
-          {{ acme_dir }}/{{ tls.acme_domains[0] }}/{{ tls.acme_domains[0] }}.key \
+          {{ acme_dir }}/{{ tls.acme_domains[0] }}{% if tls.keylength in ['ec-256','ec-384','ec-521'] %}_ecc{% endif %}/fullchain.cer \
+          {{ acme_dir }}/{{ tls.acme_domains[0] }}{% if tls.keylength in ['ec-256','ec-384','ec-521'] %}_ecc{% endif %}/{{ tls.acme_domains[0] }}.key \
           > {{ tls.target_dir }}/{{ tls.acme_domains[0] }}/{{ tls.target_bundle_name }}
       when: tls.target_format == 'haproxy'
       notify:
@@ -366,4 +333,3 @@
         - ch_ex.rc != 0
         - not 'Domains not changed' in ch_ex.stdout
   when: tls.acme_domains | length != 0
-
