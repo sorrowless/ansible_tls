@@ -22,6 +22,12 @@
     - never
     - clear_crontab
 
+- name: TLS | Import clear old configs
+  import_tasks: "clear_old_configs.yml"
+  tags:
+    - clear_old_configs
+  when: tls_clear_old_configs
+
 - name: TLS | Include according processing module
   include_tasks: "common.yml"
   loop: "{{ tls_data }}"
