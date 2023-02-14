@@ -301,6 +301,24 @@
       environment: "{{ tls.acme_notify_envvars }}"
       when: tls.acme_notify
 
+    - name: TLS | Postinstall | Ensure prehook for cron
+      become: yes
+      become_user: root
+      lineinfile:
+        path: "{{ acme_dir }}/{{ tls.acme_domains[0] }}{% if tls.keylength in ['ec-256','ec-384','ec-521'] %}_ecc{% endif %}/{{ tls.acme_domains[0] }}.conf"
+        regexp: '^Le_PreHook='
+        line: 'Le_PreHook="__ACME_BASE64__START_{{ tls.acme_pre_hook | string | b64encode }}__ACME_BASE64__END_"'
+      when: tls.acme_hooks
+
+    - name: TLS | Postinstall | Ensure posthook for cron
+      become: yes
+      become_user: root
+      lineinfile:
+        path: "{{ acme_dir }}/{{ tls.acme_domains[0] }}{% if tls.keylength in ['ec-256','ec-384','ec-521'] %}_ecc{% endif %}/{{ tls.acme_domains[0] }}.conf"
+        regexp: '^Le_PostHook='
+        line: 'Le_PostHook="__ACME_BASE64__START_{{ tls.acme_post_hook | string | b64encode }}__ACME_BASE64__END_"'
+      when: tls.acme_hooks
+
     - name: TLS | Postcheck | Ensure certs placement
       stat:
         path: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem"
