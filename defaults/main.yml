@@ -54,3 +54,4 @@ tls_common:
   keylength: ec-256
 tls_group: {}
 tls_host: {}
+tls_clear_old_configs: true
