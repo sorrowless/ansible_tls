@@ -1,7 +1,14 @@
 ---
 - name: TLS | Set list of domains
   set_fact:
-    list_domains: "{{ list_domains | default([]) }} + {{ ['/root/.acme.sh.' + tls.acme_domains|join] }}"
+    list_domains: >
+      {{ list_domains | default([]) }} +
+      {{ ['/root/.acme.sh.' + tls.acme_domains|join] }}
+    list_delete_subdirectories: >
+      {{ list_delete_subdirectories | default([]) }} +
+      {% if tls.keylength in ['2048','3072','4096'] %}
+      {{ ['/root/.acme.sh.' + tls.acme_domains | join + '/' + tls.acme_domains | join + '_ecc' ] }}{% else %}
+      {{ ['/root/.acme.sh.' + tls.acme_domains | join + '/' + tls.acme_domains | join] }}{% endif %}
   loop: "{{ tls_data }}"
   loop_control:
     loop_var: tls
@@ -24,6 +31,12 @@
     path: "{{ item }}"
     state: absent
   with_items: "{{ list_installed_domains | default([]) | difference(list_domains) }}"
+
+- name: TLS | Delete old subdirectories
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ list_delete_subdirectories }}"
 
 - name: TLS | Delete old crontab entries
   become: yes
