@@ -11,8 +11,10 @@
     list_delete_subdirectories: >
       {{ list_delete_subdirectories | default([]) }} +
       {% if tls.keylength in ['2048','3072','4096'] and tls.acme_domains %}
-      {{ ['/root/.acme.sh.' + tls.acme_domains[0] | join + '/' + tls.acme_domains | join + '_ecc' ] }}{% elif tls.acme_domains %}
-      {{ ['/root/.acme.sh.' + tls.acme_domains[0] | join + '/' + tls.acme_domains | join] }}{% endif %}
+      {{ ['/root/.acme.sh.' + tls.acme_domains[0] | join + '/' + tls.acme_domains[0] | join + '_ecc' ] }}{% elif tls.acme_domains %}
+      {{ ['/root/.acme.sh.' + tls.acme_domains[0] | join + '/' + tls.acme_domains[0] | join] }}{% else %}
+      []
+      {% endif %}
   loop: "{{ tls_data }}"
   loop_control:
     loop_var: tls
