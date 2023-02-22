@@ -3,12 +3,16 @@
   set_fact:
     list_domains: >
       {{ list_domains | default([]) }} +
-      {{ ['/root/.acme.sh.' + tls.acme_domains|join] }}
+      {% if tls.acme_domains %}
+      {{ ['/root/.acme.sh.' + tls.acme_domains[0] |join] }}
+      {% else %}
+      []
+      {% endif %}
     list_delete_subdirectories: >
       {{ list_delete_subdirectories | default([]) }} +
-      {% if tls.keylength in ['2048','3072','4096'] %}
-      {{ ['/root/.acme.sh.' + tls.acme_domains | join + '/' + tls.acme_domains | join + '_ecc' ] }}{% else %}
-      {{ ['/root/.acme.sh.' + tls.acme_domains | join + '/' + tls.acme_domains | join] }}{% endif %}
+      {% if tls.keylength in ['2048','3072','4096'] and tls.acme_domains %}
+      {{ ['/root/.acme.sh.' + tls.acme_domains[0] | join + '/' + tls.acme_domains | join + '_ecc' ] }}{% elif tls.acme_domains %}
+      {{ ['/root/.acme.sh.' + tls.acme_domains[0] | join + '/' + tls.acme_domains | join] }}{% endif %}
   loop: "{{ tls_data }}"
   loop_control:
     loop_var: tls
@@ -25,6 +29,18 @@
   set_fact:
     list_installed_domains: "{{ list_installed_domains | default([]) }} + [ '{{ item.path }}' ]"
   with_items: "{{ list_domain_directories.files }}"
+
+- name: TLS | show list of existing domains
+  debug:
+    msg: "Here is the list of domains found on target host: {{ list_installed_domains }}"
+
+- name: TLS | show list of domains to install
+  debug:
+    msg: "Here is the list of domains to install onto target host: {{ list_domains }}"
+
+- name: TLS | show list of domains to deletion
+  debug:
+    msg: "Here is the list of domains to delete: {{ list_installed_domains | default([]) | difference(list_domains) }}"
 
 - name: TLS | Delete old configs
   file:
