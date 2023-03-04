@@ -32,7 +32,7 @@
 
 - name: TLS | show list of existing domains
   debug:
-    msg: "Here is the list of domains found on target host: {{ list_installed_domains }}"
+    msg: "Here is the list of domains found on target host: {{ list_installed_domains | default([]) }}"
 
 - name: TLS | show list of domains to install
   debug:

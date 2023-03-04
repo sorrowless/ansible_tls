@@ -132,7 +132,7 @@
       include_tasks:
         file: acme_cache_account.yml
         apply:
-          tags: 
+          tags:
             - cache_account
       tags:
         - cache_account
@@ -321,7 +321,7 @@
 
     - name: TLS | Postcheck | Ensure certs placement
       stat:
-        path: "{{ tls.target_dir }}/{{ tls.acme_domains[0] }}/private.pem"
+        path: "{{ tls_target_key_path }}"
       register: private_key
 
     - name: TLS | Deploy | Fail if private key was not created
