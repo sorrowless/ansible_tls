@@ -27,9 +27,7 @@ tls_group:
   target_dir: /etc/ssl_certs
   target_key_name: private.pem
   target_cert_name: fullchain.pem
-  # If target_format is 'haproxy', this filename will be used
-  target_bundle_name: bundle.pem
-```
+
 
 You can see all vars in `default/main.yml` vars file.
 

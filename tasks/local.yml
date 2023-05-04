@@ -4,15 +4,6 @@
     msg: "You have to fill tls.local_src_key and tls.local_src_cert vars"
   when: not tls.local_src_key or not tls.local_src_cert
 
-- name: TLS | Local | Ensure bundle on target host
-  become: yes
-  copy:
-    dest: "{{ tls.target_dir }}/{{ tls.target_bundle_name }}"
-    content: "{{ '\n'.join((tls.local_src_cert, tls.local_src_key)) }}"
-    mode: 0600
-    owner: root
-    group: root
-  when: tls.target_format == "haproxy"
 
 - name: TLS | Local | Ensure certificate on target host
   become: yes
@@ -22,7 +13,6 @@
     mode: 0644
     owner: root
     group: root
-  when: tls.target_format == "nginx"
 
 - name: TLS | Local | Ensure private key on target host
   become: yes
@@ -32,4 +22,3 @@
     mode: 0600
     owner: root
     group: root
-  when: tls.target_format == "nginx"
