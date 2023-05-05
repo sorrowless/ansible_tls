@@ -329,19 +329,6 @@
         msg: "Certificate missing. Check issuance process logs to get reasons"
       when: not private_key.stat.exists
 
-    - name: TLS | Deploy | Create HAProxy chain
-      become: yes
-      become_user: root
-      shell:
-        cmd: |
-          cat \
-          {{ acme_dir }}/{{ tls.acme_domains[0] }}{% if tls.keylength in ['ec-256','ec-384','ec-521'] %}_ecc{% endif %}/fullchain.cer \
-          {{ acme_dir }}/{{ tls.acme_domains[0] }}{% if tls.keylength in ['ec-256','ec-384','ec-521'] %}_ecc{% endif %}/{{ tls.acme_domains[0] }}.key \
-          > {{ tls.target_dir }}/{{ tls.acme_domains[0] }}/{{ tls.target_bundle_name }}
-      when: tls.target_format == 'haproxy'
-      notify:
-        - Haproxy reload
-
     - name: TLS | Postcheck | Fail if got real error on cert issuing time
       fail:
         msg: "Got an error while issue certificate: \n {{ ch_ex.stdout }}"

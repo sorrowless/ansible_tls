@@ -25,13 +25,9 @@ tls_group:
   local_src_key: false
   local_src_cert: false
   target_dir: /etc/ssl_certs
-  # Formats: nginx, haproxy
-  target_format: nginx
   target_key_name: private.pem
   target_cert_name: fullchain.pem
-  # If target_format is 'haproxy', this filename will be used
-  target_bundle_name: bundle.pem
-```
+
 
 You can see all vars in `default/main.yml` vars file.
 
