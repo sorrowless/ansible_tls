@@ -5,6 +5,7 @@ tls_common:
   type: local
   local_src_key: false
   local_src_cert: false
+  local_target_haproxy: false
   ## Acme cert variables
   ### Available tools: acme.sh
   acme_tool: acme.sh
