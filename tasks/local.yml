@@ -12,7 +12,7 @@
     mode: 0600
     owner: root
     group: root
-  when: local_target_haproxy
+  when: tls.local_target_haproxy
 
 - name: TLS | Local | Ensure certificate on target host
   become: yes
