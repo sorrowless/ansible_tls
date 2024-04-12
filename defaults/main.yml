@@ -42,6 +42,7 @@ tls_common:
   target_key_name: private.pem
   target_cert_name: cert.pem
   target_fullchain_name: fullchain.pem
+  target_bundle_name: bundle.pem
   target_ca_name: ca.pem
   webroot_dir: /var/www/le_root
   # Whether to try use already created account on the host
