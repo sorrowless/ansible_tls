@@ -1,4 +1,7 @@
 ---
+# Example: https://github.com/Xolog/acme.sh.gits
+acme_repo: https://github.com/acmesh-official/acme.sh.git
+acme_version: master
 tls_common:
   # Types: local, acme
   ## Local cert variables

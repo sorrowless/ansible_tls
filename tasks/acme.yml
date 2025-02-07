@@ -29,9 +29,9 @@
       become: yes
       become_user: root
       git:
-        repo: https://github.com/acmesh-official/acme.sh.git
+        repo: "{{ acme_repo }}"
         dest: "{{ acme_checkout_dir }}"
-        version: master
+        version: "{{ acme_version | default('master')}}"
 
     - name: TLS | Installation | Install acme.sh to the system
       become: yes
