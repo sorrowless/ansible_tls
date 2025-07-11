@@ -9,7 +9,7 @@
     hidden: true
     depth: 1
     patterns: ".acme.sh.*"
-  register: existing_accounts   
+  register: existing_accounts
 
 - name: Set cached account variable
   set_fact:
@@ -18,7 +18,7 @@
 - name: Show found cached accounts
   debug:
     var: existing_accounts
-    
+
 - name: Set fact with first found account fulldir
   set_fact:
     tls_cached_account_json: "{{ existing_accounts.files[0].path }}/{{ tls_acme_account_subdir[tls.acme_default_ca] }}/account.json"
@@ -30,6 +30,7 @@
 - name: Get account.conf stat
   stat:
     path: "{{ tls_cached_account_json }}"
+  become: true
   register: account_json
 
 - name: Set cached vars
@@ -81,9 +82,10 @@
         mode: 0644
         owner: root
         group: root
+  become: true
   when:
     - account_json.stat.exists
-    
+
 - name: Set cached account variable
   set_fact:
     cached_account_not_found: false
