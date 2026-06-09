@@ -1,8 +1,8 @@
 ---
 - name: Create directory for certificates
-  become: yes
+  become: true
   become_user: root
-  file:
+  ansible.builtin.file:
     path: "{{ tls.target_dir }}/{{ tls.self_signed_domain }}"
     state: directory
     owner: "{{ ansible_user }}"
