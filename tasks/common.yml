@@ -1,8 +1,8 @@
 ---
 - name: TLS | Ensure directories
-  become: yes
+  become: true
   become_user: root
-  file:
+  ansible.builtin.file:
     path: "{{ tls.target_dir }}"
     state: directory
     owner: "{{ ansible_user }}"

@@ -1,8 +1,8 @@
 ---
 - name: TLS | Check for acme.sh crontab entry
-  become: yes
+  become: true
   become_user: root
-  shell:
+  ansible.builtin.shell:
     cmd: |
       crontab -l | egrep -q '.*acme.sh.*'
   changed_when: false
@@ -10,9 +10,9 @@
   register: crontab_acme_sh_entry
 
 - name: TLS | Delete acme.sh crontab entry
-  become: yes
+  become: true
   become_user: root
-  shell:
+  ansible.builtin.shell:
     cmd: |
       crontab -l | sed '/.*acme.sh.*/d' | crontab -
   when: crontab_acme_sh_entry.rc == 0
